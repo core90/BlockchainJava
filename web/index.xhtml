@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="./WEB-INF/layouts/firstChainTemplate.xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+    <ui:define name="title">
+        Home
+    </ui:define>
+
+    <ui:define name="top">
+        top
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form prependId="false">
+            <h:commandLink value="New Wallet..." action="createNewWallet?faces-redirect=true"
+                           styleClass="btn btn-primary"/>
+            <h:commandLink value="test" action="#{firstChainController.testing()}"
+                           styleClass="btn btn-primary"/>
+
+            <h:dataTable value="#{firstChainController.blockchain}" var="row"
+                         styleClass="table table-striped">
+                <h:column>
+                    <f:facet name="header">Hash</f:facet>
+                        #{row.hash}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Previous Hash</f:facet>
+                        #{row.previousHash}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Nonce</f:facet>
+                        #{row.nonce}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Time</f:facet>
+                        #{row.date}
+                </h:column>
+            </h:dataTable>
+
+            <h:dataTable value="#{firstChainController.blockchain}" var="row"
+                         styleClass="table table-striped">
+                <h:column>
+                    <f:facet name="header">Transaction</f:facet>
+                        #{row.transactions}
+                </h:column>
+            </h:dataTable>
+
+        </h:form>
+    </ui:define>
+
+</ui:composition>

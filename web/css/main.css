@@ -1,0 +1,21 @@
+
+body {
+  color: white;
+  background: black;
+}
+
+#bewertungen {
+  color: red;
+  font-family: monospace;
+}
+
+div {
+  font-family: monospace;
+}
+p {
+  font-family: serif;
+}
+.rahmen {
+  background: khaki;
+  border: 1px solid #ccc;
+}

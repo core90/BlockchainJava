@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="./WEB-INF/layouts/firstChainTemplate.xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+
+    <ui:define name="title">
+        Create new Wallet
+    </ui:define>
+
+    <ui:define name="top">
+        top
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form>
+            <h:commandLink value="Create new Wallet" action="#{firstChainController.createWallet()}"
+                           styleClass="btn btn-primary"/>
+            <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"
+                           styleClass="btn btn-primary"/>
+
+            <h:dataTable value="#{firstChainController.walletList}" var="row">
+                <h:column>
+                    <f:facet name="header">Public Key</f:facet>
+                        #{row.publicKey}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Balance</f:facet>
+                        #{row.balance}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">UTXO Wallet</f:facet>
+                        #{row.UTXOWallet}
+                </h:column>
+            </h:dataTable>
+        </h:form>
+    </ui:define>
+
+</ui:composition>
