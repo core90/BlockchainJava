@@ -66,7 +66,7 @@ public class Transaction implements Serializable {
 
     @Override
     public String toString() {
-        return "Transaction{" + "transactionId=" + transactionId + ", sender=" + sender + ", recipient=" + recipient + ", value=" + value + ", signature=" + signature + ", inputs=" + inputs + ", outputs=" + outputs + '}';
+        return "Transaction{" + "transactionId=" + transactionId + ", sender=" + StringUtil.getStringFromKey(sender) + ", recipient=" + recipient + ", value=" + value + ", signature=" + signature + ", inputs=" + inputs + ", outputs=" + outputs + '}';
     }
 
     /**
@@ -154,7 +154,7 @@ public class Transaction implements Serializable {
 
         // add outputs to Unspent list
         for (TransactionOutput o : outputs) {
-            FirstChain.getUTXOTotal().put(o.id, o);
+            FirstChain.getUTXOTotal().put(o.getId(), o);
         }
 
         // remove transaction inputs from UTXO lists as spent
@@ -162,7 +162,7 @@ public class Transaction implements Serializable {
             if (i.UTXO == null) {
                 continue; // if Transaction can't be found skip it 
             }
-            FirstChain.getUTXOTotal().remove(i.UTXO.id);
+            FirstChain.getUTXOTotal().remove(i.UTXO.getId());
         }
         return true;
     }
@@ -171,13 +171,13 @@ public class Transaction implements Serializable {
      *
      * @return sum of inputs(UTXO) values
      */
-    public float getInputsValue() {
-        float total = 0;
+    public double getInputsValue() {
+        double total = 0;
         for (TransactionInput i : inputs) {
             if (i.UTXO == null) {
                 continue; //if Transaction can't be found skip it 
             }
-            total += i.UTXO.value;
+            total += i.UTXO.getValue();
         }
         return total;
     }
@@ -186,10 +186,10 @@ public class Transaction implements Serializable {
      *
      * @return sum of outputs
      */
-    public float getOutputValue() {
-        float total = 0;
+    public double getOutputValue() {
+        double total = 0;
         for (TransactionOutput o : outputs) {
-            total += o.value;
+            total += o.getValue();
         }
         return total;
     }

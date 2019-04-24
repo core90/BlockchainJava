@@ -5,6 +5,7 @@
  */
 package at.core90.firstChain.data;
 
+import at.core90.firstChain.helpers.StringUtil;
 import java.io.Serializable;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -25,6 +26,7 @@ public class Wallet implements Serializable {
 
     private PrivateKey privateKey;
     private PublicKey publicKey;
+    private String password;
 
     /**
      * Hashmap of Unspent Transaction Outputs (UTXOTotal) owned by a wallet
@@ -39,6 +41,7 @@ public class Wallet implements Serializable {
      * @see generateKeyPair()
      */
     public Wallet() {
+        this.password = password;
         generateKeyPair();
     }
 
@@ -80,8 +83,8 @@ public class Wallet implements Serializable {
         for (Map.Entry<String, TransactionOutput> item : FirstChain.getUTXOTotal().entrySet()) {
             TransactionOutput UTXO = item.getValue();
             if (UTXO.isMine(publicKey)) { // if output belongs to this wallet (if coins belong to this wallet)
-                UTXOWallet.put(UTXO.id, UTXO); // add it to our list of unspent transactions
-                total += UTXO.value; // add owned coins to the wallet
+                UTXOWallet.put(UTXO.getId(), UTXO); // add it to our list of unspent transactions
+                total += UTXO.getValue(); // add owned coins to the wallet
             }
         }
         return total;
@@ -113,10 +116,10 @@ public class Wallet implements Serializable {
         // iterate over outputs in UTXO of this wallet 
         for (Map.Entry<String, TransactionOutput> item : UTXOWallet.entrySet()) {
             TransactionOutput UTXO = item.getValue();
-            total += UTXO.value;
+            total += UTXO.getValue();
 
             // store the id`s of the outputs in inputs array
-            inputs.add(new TransactionInput(UTXO.id));
+            inputs.add(new TransactionInput(UTXO.getId()));
             if (total > value) {
                 break;
             }
@@ -136,7 +139,7 @@ public class Wallet implements Serializable {
 
     @Override
     public String toString() {
-        return "Wallet{" + " publicKey=" + publicKey + ", UTXOWallet=" + UTXOWallet + '}';
+        return "Wallet{" + "publicKey=" + StringUtil.getStringFromKey(publicKey) + ", password=" + password + ", UTXOWallet=" + UTXOWallet + '}';
     }
 
     public PrivateKey getPrivateKey() {
@@ -149,6 +152,10 @@ public class Wallet implements Serializable {
 
     public PublicKey getPublicKey() {
         return publicKey;
+    }
+    
+    public String getStringPublicKey() {
+        return StringUtil.getStringFromKey(publicKey);
     }
 
     public void setPublicKey(PublicKey publicKey) {
@@ -169,5 +176,13 @@ public class Wallet implements Serializable {
 
     public static void setWalletList(ArrayList<Wallet> aWalletList) {
         walletList = aWalletList;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

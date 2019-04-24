@@ -15,10 +15,10 @@ import java.security.PublicKey;
  */
 public class TransactionOutput implements Serializable {
 
-    public String id;
-    public PublicKey recipient; // also known as the new owner of these coins
-    public double value; // the amount of coins they own
-    public String parentTransactionId; // the id of the transaction this output was created in
+    private String id;
+    private PublicKey recipient; // also known as the new owner of these coins
+    private double value; // the amount of coins they own
+    private String parentTransactionId; // the id of the transaction this output was created in
 
     // Contructor
     public TransactionOutput(PublicKey recipient, double value, String parentTransactionId) {
@@ -36,5 +36,42 @@ public class TransactionOutput implements Serializable {
      */
     public boolean isMine(PublicKey publicKey) {
         return (publicKey == recipient);
+    }
+
+    @Override
+    public String toString() {
+        return "TransactionOutput{" + "id=" + id + ", recipient=" + recipient + ", value=" + value + ", parentTransactionId=" + parentTransactionId + '}';
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public PublicKey getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(PublicKey recipient) {
+        this.recipient = recipient;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public String getParentTransactionId() {
+        return parentTransactionId;
+    }
+
+    public void setParentTransactionId(String parentTransactionId) {
+        this.parentTransactionId = parentTransactionId;
     }
 }

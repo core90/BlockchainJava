@@ -6,8 +6,10 @@
 package at.core90.firstChain.helpers;
 
 import at.core90.firstChain.data.Transaction;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
@@ -132,6 +134,39 @@ public class StringUtil {
         }
         String merkleRoot = (treeLayer.size() == 1) ? treeLayer.get(0) : "";
         return merkleRoot;
+    }
+
+    /**
+     * Liefert den SHA 256 Hashwert der Zeichenkette retour.
+     *
+     * @param txt Text für Berechnung.
+     * @return Liefert den SHA 256 Hashwert der Zeichenkette retour.
+     * @throws CryptException Fehler beim Berechnen des Hashwerts.
+     */
+    public static String getSha256(String txt) throws CryptException {
+        MessageDigest digest;
+        String returnString = "";
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedhash = digest.digest(
+                    txt.getBytes(StandardCharsets.UTF_8));
+            returnString = bytesToHex(encodedhash);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new CryptException(ex.getMessage());
+        }
+        return returnString;
+    }
+
+    private static String bytesToHex(byte[] hash) {
+        StringBuilder hexString = new StringBuilder();
+        for (int i = 0; i < hash.length; i++) {
+            String hex = Integer.toHexString(0xff & hash[i]);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
 }

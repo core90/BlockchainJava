@@ -50,7 +50,7 @@ public class FirstChainController implements Serializable {
         FirstChain.getGenesisTransaction().generateSignature(coinbase.getPrivateKey()); // manually sign the genesis transaction
         FirstChain.getGenesisTransaction().transactionId = "0"; // manually set the transaction id
         FirstChain.getGenesisTransaction().outputs.add(new TransactionOutput(FirstChain.getGenesisTransaction().recipient, FirstChain.getGenesisTransaction().value, FirstChain.getGenesisTransaction().transactionId)); // manually add the Transaction Output
-        FirstChain.getUTXOTotal().put(FirstChain.getGenesisTransaction().outputs.get(0).id, FirstChain.getGenesisTransaction().outputs.get(0)); // its important to store our first transaction in the UTXOTotal list
+        FirstChain.getUTXOTotal().put(FirstChain.getGenesisTransaction().outputs.get(0).getId(), FirstChain.getGenesisTransaction().outputs.get(0)); // its important to store our first transaction in the UTXOTotal list
 
         System.out.println("Creating and Mining Genesis block...");
         Block genesis = new Block("0");
@@ -76,16 +76,11 @@ public class FirstChainController implements Serializable {
 
     }
 
+    public boolean isChainVaild() {
+        return FirstChain.isChainValid();
+    }
+
     public ArrayList<Block> getBlockchain() {
         return FirstChain.getBlockchain();
-    }
-
-    public ArrayList<Wallet> getWalletList() {
-        return Wallet.getWalletList();
-    }
-
-    public void createWallet() {
-        Wallet newWallet = new Wallet();
-        Wallet.getWalletList().add(newWallet);
     }
 }

@@ -15,12 +15,26 @@
 
     <ui:define name="content">
         <h:form>
-            <h:commandLink value="Create new Wallet" action="#{firstChainController.createWallet()}"
-                           styleClass="btn btn-primary"/>
+            <div>
+                <h:messages/>
+                <h:outputLabel for="inputPassword">Password</h:outputLabel>
+                <h:inputSecret id="inputPassword"
+                               value="#{walletConroller.inputPassword}"
+                               required="true"
+                               requiredMessage="Please enter Password"/>
+                <h:commandLink value="Create new Wallet" action="#{walletConroller.createWallet()}"
+                               styleClass="btn btn-primary"/>
+            </div>
+
+
             <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"
+                           immediate="true"
+                           styleClass="btn btn-primary"/>
+            <h:commandLink value="Login" action="login?faces-redirect=true"
+                           immediate="true"
                            styleClass="btn btn-primary"/>
 
-            <h:dataTable value="#{firstChainController.walletList}" var="row">
+            <h:dataTable value="#{walletConroller.walletList}" var="row">
                 <h:column>
                     <f:facet name="header">Public Key</f:facet>
                         #{row.publicKey}

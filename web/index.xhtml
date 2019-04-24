@@ -36,7 +36,11 @@
                 </h:column>
                 <h:column>
                     <f:facet name="header">Time</f:facet>
-                        #{row.date}
+                        #{row.date} 
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Chain Valid</f:facet>
+                        #{firstChainController.chainVaild}
                 </h:column>
             </h:dataTable>
 

@@ -42,7 +42,7 @@ public class FirstChain implements Serializable {
          */
         HashMap<String, TransactionOutput> tempUTXOs = new HashMap<String, TransactionOutput>();
 
-        tempUTXOs.put(genesisTransaction.outputs.get(0).id, genesisTransaction.outputs.get(0));
+        tempUTXOs.put(genesisTransaction.outputs.get(0).getId(), genesisTransaction.outputs.get(0));
 
         // loop through blockchain to check hashes:
         for (int i = 1; i < blockchain.size(); i++) {
@@ -94,7 +94,7 @@ public class FirstChain implements Serializable {
                     }
 
                     // check if input value == output value
-                    if (input.UTXO.value != tempOutput.value) {
+                    if (input.UTXO.getValue() != tempOutput.getValue()) {
                         System.out.println("Referenced input Transaction(" + t + ") value is Invalid");
                         return false;
                     }
@@ -104,17 +104,17 @@ public class FirstChain implements Serializable {
 
                 // loop through transaction outputs
                 for (TransactionOutput output : currentTransaction.outputs) {
-                    tempUTXOs.put(output.id, output);
+                    tempUTXOs.put(output.getId(), output);
                 }
 
                 // check if recipient is valid
-                if (currentTransaction.outputs.get(0).recipient != currentTransaction.recipient) {
+                if (currentTransaction.outputs.get(0).getRecipient() != currentTransaction.recipient) {
                     System.out.println("Transaction(" + t + ") output recipient is not who it should  be");
                     return false;
                 }
 
                 // check if output 'change' belongs to sender
-                if (currentTransaction.outputs.get(1).recipient != currentTransaction.sender) {
+                if (currentTransaction.outputs.get(1).getRecipient() != currentTransaction.sender) {
                     System.out.println("Transaction(" + t + ") output 'change' is not sender");
                     return false;
                 }
