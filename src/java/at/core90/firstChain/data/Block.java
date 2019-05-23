@@ -5,25 +5,43 @@
  */
 package at.core90.firstChain.data;
 
+import at.core90.firstChain.data.Transaction;
 import at.core90.firstChain.helpers.StringUtil;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 /**
  *
  * @author Daniel
  */
+@Entity
 public class Block implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     private String hash;
     private String previousHash;
     private String merkleRoot;
-    private ArrayList<Transaction> transactions = new ArrayList<>(); // our data will be a simple message
     private long timeStamp; // as number of milliseconds since 1/1/1970
     private Date date;
     private int nonce;
-    //private int blockNumber;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    private ArrayList<Transaction> transactions = new ArrayList<>(); // our data will be a simple message
+
+    public Block() {
+    }
 
     // Block Constructor
     public Block(String previousHash) {
@@ -32,11 +50,6 @@ public class Block implements Serializable {
         this.date = new Date(); // only for output
         this.hash = calculateHash(); // Making sure we do this after we set other values
         //this.blockNumber = blockNumber + 1;
-    }
-
-    @Override
-    public String toString() {
-        return "Block{" + "hash=" + hash + ", previousHash=" + previousHash + ", transactions=" + transactions + ", nonce=" + nonce + '}';
     }
 
     /**
@@ -90,6 +103,39 @@ public class Block implements Serializable {
         return true;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Block)) {
+            return false;
+        }
+        Block other = (Block) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Block{" + "id=" + id + ", hash=" + hash + ", previousHash=" + previousHash + ", merkleRoot=" + merkleRoot + ", timeStamp=" + timeStamp + ", date=" + date + ", nonce=" + nonce + ", transactions=" + transactions + '}';
+    }
+
     public String getHash() {
         return hash;
     }
@@ -114,28 +160,12 @@ public class Block implements Serializable {
         this.merkleRoot = merkleRoot;
     }
 
-    public ArrayList<Transaction> getTransactions() {
-        return transactions;
-    }
-
-    public void setTransactions(ArrayList<Transaction> transactions) {
-        this.transactions = transactions;
-    }
-
     public long getTimeStamp() {
         return timeStamp;
     }
 
     public void setTimeStamp(long timeStamp) {
         this.timeStamp = timeStamp;
-    }
-
-    public int getNonce() {
-        return nonce;
-    }
-
-    public void setNonce(int nonce) {
-        this.nonce = nonce;
     }
 
     public Date getDate() {
@@ -146,11 +176,20 @@ public class Block implements Serializable {
         this.date = date;
     }
 
-//    public int getBlockNumber() {
-//        return blockNumber;
-//    }
-//
-//    public void setBlockNumber(int blockNumber) {
-//        this.blockNumber = blockNumber;
-//    }
+    public int getNonce() {
+        return nonce;
+    }
+
+    public void setNonce(int nonce) {
+        this.nonce = nonce;
+    }
+
+    public ArrayList<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(ArrayList<Transaction> transactions) {
+        this.transactions = transactions;
+    }
+
 }

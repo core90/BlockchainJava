@@ -5,8 +5,6 @@
  */
 package at.core90.firstChain.controller;
 
-import at.core90.firstChain.data.Block;
-import at.core90.firstChain.data.FirstChain;
 import at.core90.firstChain.data.Wallet;
 import at.core90.firstChain.helpers.CryptException;
 import at.core90.firstChain.helpers.JSFUtil;

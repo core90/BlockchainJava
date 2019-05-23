@@ -17,29 +17,43 @@ import java.security.spec.ECGenParameterSpec;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  *
  * @author Daniel
  */
+@Entity
 public class Wallet implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     private PrivateKey privateKey;
     private PublicKey publicKey;
+
+    @Column(length = 2048)
+    private String privateKeyString;
+
+    @Column(length = 2048)
+    private String publicKeyString;
+
     private String password;
 
-    /**
-     * Hashmap of Unspent Transaction Outputs (UTXOTotal) owned by a wallet
-     */
-    private HashMap<String, TransactionOutput> UTXOWallet = new HashMap<String, TransactionOutput>(); // only UTXOTotal owned by this wallet
+    @OneToMany(fetch = FetchType.EAGER)
+    private HashMap<String, TransactionOutput> UTXOWallet = new HashMap<String, TransactionOutput>();
 
     private static ArrayList<Wallet> walletList = new ArrayList<Wallet>();
 
-    /**
-     * Creates a new wallet by calling the generateKeyPair() method
-     *
-     * @see generateKeyPair()
-     */
     public Wallet() {
         this.password = password;
         generateKeyPair();
@@ -68,6 +82,9 @@ public class Wallet implements Serializable {
             privateKey = keyPair.getPrivate();
             publicKey = keyPair.getPublic();
 
+            privateKeyString = StringUtil.getStringFromKey(privateKey);
+            publicKeyString = StringUtil.getStringFromKey(publicKey);
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -80,9 +97,9 @@ public class Wallet implements Serializable {
      */
     public double getBalance() {
         double total = 0;
-        for (Map.Entry<String, TransactionOutput> item : FirstChain.getUTXOTotal().entrySet()) {
+        for (Map.Entry<String, TransactionOutput> item : Firstchain.getUTXOTotal().entrySet()) {
             TransactionOutput UTXO = item.getValue();
-            if (UTXO.isMine(publicKey)) { // if output belongs to this wallet (if coins belong to this wallet)
+            if (UTXO.isMine(publicKeyString)) { // if output belongs to this wallet (if coins belong to this wallet)
                 UTXOWallet.put(UTXO.getId(), UTXO); // add it to our list of unspent transactions
                 total += UTXO.getValue(); // add owned coins to the wallet
             }
@@ -101,7 +118,7 @@ public class Wallet implements Serializable {
      * @param value
      * @return a new transaction
      */
-    public Transaction sendFunds(PublicKey recipient, double value) {
+    public Transaction sendFunds(String recipient, double value) {
 
         // gather balance and check funds 
         if (getBalance() < value) {
@@ -112,7 +129,7 @@ public class Wallet implements Serializable {
         // create array list of inputs
         ArrayList<TransactionInput> inputs = new ArrayList<TransactionInput>();
 
-        float total = 0;
+        double total = 0;
         // iterate over outputs in UTXO of this wallet 
         for (Map.Entry<String, TransactionOutput> item : UTXOWallet.entrySet()) {
             TransactionOutput UTXO = item.getValue();
@@ -126,7 +143,7 @@ public class Wallet implements Serializable {
         }
 
         // create new Transaction
-        Transaction newTransaction = new Transaction(publicKey, recipient, value, inputs);
+        Transaction newTransaction = new Transaction(publicKey, publicKeyString, recipient, value, inputs);
         // generate signature for new Transaction
         newTransaction.generateSignature(privateKey);
 
@@ -139,7 +156,7 @@ public class Wallet implements Serializable {
 
     @Override
     public String toString() {
-        return "Wallet{" + "publicKey=" + StringUtil.getStringFromKey(publicKey) + ", password=" + password + ", UTXOWallet=" + UTXOWallet + '}';
+        return "Wallet{" + "id=" + id + ", privateKey=" + privateKey + ", publicKey=" + publicKey + ", privateKeyString=" + privateKeyString + ", publicKeyString=" + publicKeyString + ", password=" + password + ", UTXOWallet=" + UTXOWallet + '}';
     }
 
     public PrivateKey getPrivateKey() {
@@ -153,13 +170,33 @@ public class Wallet implements Serializable {
     public PublicKey getPublicKey() {
         return publicKey;
     }
-    
-    public String getStringPublicKey() {
-        return StringUtil.getStringFromKey(publicKey);
-    }
 
     public void setPublicKey(PublicKey publicKey) {
         this.publicKey = publicKey;
+    }
+
+    public String getPrivateKeyString() {
+        return privateKeyString;
+    }
+
+    public void setPrivateKeyString(String privateKeyString) {
+        this.privateKeyString = privateKeyString;
+    }
+
+    public String getPublicKeyString() {
+        return publicKeyString;
+    }
+
+    public void setPublicKeyString(String publicKeyString) {
+        this.publicKeyString = publicKeyString;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public HashMap<String, TransactionOutput> getUTXOWallet() {
@@ -170,19 +207,39 @@ public class Wallet implements Serializable {
         this.UTXOWallet = UTXOWallet;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Wallet)) {
+            return false;
+        }
+        Wallet other = (Wallet) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
     public static ArrayList<Wallet> getWalletList() {
         return walletList;
     }
 
     public static void setWalletList(ArrayList<Wallet> aWalletList) {
         walletList = aWalletList;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }

@@ -6,7 +6,7 @@
                 xmlns:f="http://xmlns.jcp.org/jsf/core">
 
     <ui:define name="title">
-        title
+        Wallet Area
     </ui:define>
 
     <ui:define name="top">
@@ -19,7 +19,7 @@
         </div>
         <div>
             <h:outputText value="Public Key:"/>
-            #{walletConroller.loggedInWallet.stringPublicKey}
+            #{walletConroller.loggedInWallet.publicKeyString}
         </div>
         <div>
             <h:outputText value="Balance:"/>
@@ -29,9 +29,18 @@
             <h:outputText value="Password:"/>
             #{walletConroller.loggedInWallet.password}
         </div>
-        <h:form>
-            <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"/>
-        </h:form>
+        <div>
+            <h:form>
+                <div>
+                    <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"
+                                   styleClass="btn btn-primary"/>
+                </div>
+                <div>
+                    <h:commandLink value="New Transaction..." action="#{firstChainController.newTransaction()}"
+                                   styleClass="btn btn-primary"/>
+                </div>
+            </h:form>
+        </div>
 
 
     </ui:define>

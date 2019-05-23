@@ -10,45 +10,65 @@ import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 /**
  *
  * @author Daniel
  */
+@Entity
 public class Transaction implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     /**
      * this is also the hash of the transaction
      */
-    public String transactionId;
+    private String transactionId;
 
+    private PublicKey pubKeySender;
+    
     /**
      * senders address/public key
      */
-    public PublicKey sender;
+    private String sender;
 
     /**
      * recipients address/public key
      */
-    public PublicKey recipient;
+    private String recipient;
 
     /**
      *
      */
-    public double value;
+    private double value;
 
     /**
      * this is to prevent anybody else from spending funds in our wallet
      */
-    public byte[] signature;
+    private byte[] signature;
 
-    public ArrayList<TransactionInput> inputs = new ArrayList<>();
+    @OneToMany(fetch = FetchType.EAGER)
+    private ArrayList<TransactionInput> inputs = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.EAGER)
     public ArrayList<TransactionOutput> outputs = new ArrayList<>();
 
     /**
      * a rough count of how many transaction have been generated
      */
     private static int sequence = 0;
+
+    public Transaction() {
+    }
 
     /**
      *
@@ -57,16 +77,12 @@ public class Transaction implements Serializable {
      * @param value
      * @param inputs
      */
-    public Transaction(PublicKey from, PublicKey to, double value, ArrayList<TransactionInput> inputs) {
+    public Transaction(PublicKey pubKeySender, String from, String to, double value, ArrayList<TransactionInput> inputs) {
+        this.pubKeySender = pubKeySender;
         this.sender = from;
         this.recipient = to;
         this.value = value;
         this.inputs = inputs;
-    }
-
-    @Override
-    public String toString() {
-        return "Transaction{" + "transactionId=" + transactionId + ", sender=" + StringUtil.getStringFromKey(sender) + ", recipient=" + recipient + ", value=" + value + ", signature=" + signature + ", inputs=" + inputs + ", outputs=" + outputs + '}';
     }
 
     /**
@@ -79,9 +95,7 @@ public class Transaction implements Serializable {
      */
     private String calculateHash() {
         sequence++; // increase the sequence to avoid 2 identical transactions having the same hash
-        return StringUtil.applySha256(
-                StringUtil.getStringFromKey(sender)
-                + StringUtil.getStringFromKey(recipient)
+        return StringUtil.applySha256(sender + recipient
                 + Double.toString(value) + sequence
         );
     }
@@ -95,7 +109,7 @@ public class Transaction implements Serializable {
      * @see StringUtil#applyECDSASig(java.security.PrivateKey, java.lang.String)
      */
     public void generateSignature(PrivateKey privateKey) {
-        String data = StringUtil.getStringFromKey(sender) + StringUtil.getStringFromKey(recipient) + Double.toString(value);
+        String data = sender + recipient + Double.toString(value);
         signature = StringUtil.applyECDSASig(privateKey, data);
     }
 
@@ -107,8 +121,8 @@ public class Transaction implements Serializable {
      * @return true if signature can be verified
      */
     public boolean verifySignature() {
-        String data = StringUtil.getStringFromKey(sender) + StringUtil.getStringFromKey(recipient) + Double.toString(value);
-        return StringUtil.verifyECDSASig(sender, data, signature);
+        String data = sender + recipient + Double.toString(value);
+        return StringUtil.verifyECDSASig(pubKeySender, data, signature);
     }
 
     /**
@@ -137,11 +151,11 @@ public class Transaction implements Serializable {
 
         // gather transaction inputs (Make sure they are unspent)
         for (TransactionInput i : inputs) {
-            i.UTXO = FirstChain.getUTXOTotal().get(i.transactionOutputId);
+            i.UTXO = Firstchain.getUTXOTotal().get(i.transactionOutputId);
         }
 
         // check if transaction is valid
-        if (getInputsValue() < FirstChain.getMinimumTransaction()) {
+        if (getInputsValue() < Firstchain.getMinimumTransaction()) {
             System.out.println("Transaction Inputs to small: " + getInputsValue());
             return false;
         }
@@ -154,7 +168,7 @@ public class Transaction implements Serializable {
 
         // add outputs to Unspent list
         for (TransactionOutput o : outputs) {
-            FirstChain.getUTXOTotal().put(o.getId(), o);
+            Firstchain.getUTXOTotal().put(o.getId(), o);
         }
 
         // remove transaction inputs from UTXO lists as spent
@@ -162,7 +176,7 @@ public class Transaction implements Serializable {
             if (i.UTXO == null) {
                 continue; // if Transaction can't be found skip it 
             }
-            FirstChain.getUTXOTotal().remove(i.UTXO.getId());
+            Firstchain.getUTXOTotal().remove(i.UTXO.getId());
         }
         return true;
     }
@@ -193,4 +207,110 @@ public class Transaction implements Serializable {
         }
         return total;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Transaction)) {
+            return false;
+        }
+        Transaction other = (Transaction) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Transaction{" + "id=" + id + ", transactionId=" + transactionId + ", sender=" + sender + ", recipient=" + recipient + ", value=" + value + ", signature=" + signature + ", inputs=" + inputs + ", outputs=" + outputs + '}';
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+    }
+
+    public byte[] getSignature() {
+        return signature;
+    }
+
+    public void setSignature(byte[] signature) {
+        this.signature = signature;
+    }
+
+    public ArrayList<TransactionInput> getInputs() {
+        return inputs;
+    }
+
+    public void setInputs(ArrayList<TransactionInput> inputs) {
+        this.inputs = inputs;
+    }
+
+    public ArrayList<TransactionOutput> getOutputs() {
+        return outputs;
+    }
+
+    public void setOutputs(ArrayList<TransactionOutput> outputs) {
+        this.outputs = outputs;
+    }
+
+    public static int getSequence() {
+        return sequence;
+    }
+
+    public static void setSequence(int aSequence) {
+        sequence = aSequence;
+    }
+
+    public PublicKey getPubKeySender() {
+        return pubKeySender;
+    }
+
+    public void setPubKeySender(PublicKey pubKeySender) {
+        this.pubKeySender = pubKeySender;
+    }
+
 }
