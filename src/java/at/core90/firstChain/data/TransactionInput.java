@@ -7,10 +7,13 @@ package at.core90.firstChain.data;
 
 import at.core90.firstChain.data.TransactionOutput;
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 /**
  *
@@ -24,8 +27,17 @@ public class TransactionInput implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    public String transactionOutputId; // Reference to TransactionOutputs -> transactionId
-    public TransactionOutput UTXO; // Contains the unspent transaction output
+    private String transactionOutputId; // Reference to TransactionOutputs -> transactionId
+    
+    @Column(length = 2048)
+    private TransactionOutput UTXO; // Contains the unspent transaction output
+
+    @ManyToOne
+    @JoinColumn
+    private Transaction transactionInput;
+
+    public TransactionInput() {
+    }
 
     public TransactionInput(String transactionOutputId) {
         this.transactionOutputId = transactionOutputId;
@@ -62,6 +74,22 @@ public class TransactionInput implements Serializable {
     @Override
     public String toString() {
         return "at.core90.firstChain.persistence.TransacitonInput[ id=" + id + " ]";
+    }
+
+    public String getTransactionOutputId() {
+        return transactionOutputId;
+    }
+
+    public void setTransactionOutputId(String transactionOutputId) {
+        this.transactionOutputId = transactionOutputId;
+    }
+
+    public TransactionOutput getUTXO() {
+        return UTXO;
+    }
+
+    public void setUTXO(TransactionOutput UTXO) {
+        this.UTXO = UTXO;
     }
 
 }

@@ -23,16 +23,18 @@
                              requiredMessage="Please enter Public Key of Recipient"/>
             </div>
             <div>
-                <h:outputLabel for="inputPassword">Password</h:outputLabel>
+                <h:outputLabel for="inputValue ">Value</h:outputLabel>
                 <h:inputText id="inputValue"
-                               value="#{walletConroller.inputValue}"
-                               required="true"
-                               requiredMessage="Please enter Value to send"/>
+                             value="#{firstChainController.inputValue}"
+                             required="true"
+                             requiredMessage="Please enter Value to send"/>
             </div>
-            <h:commandButton value="Send"
-                             action=""/>
+            <h:commandLink value="Send"
+                           action="#{firstChainController.newTransaction()}"
+                           styleClass="btn btn-primary"/>
             <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"
-                           immediate="true"/>
+                           immediate="true"
+                           styleClass="btn btn-primary"/>
         </h:form>
     </ui:define>
 

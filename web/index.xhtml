@@ -19,8 +19,11 @@
                            styleClass="btn btn-primary"/>
             <h:commandLink value="test" action="#{firstChainController.testing()}"
                            styleClass="btn btn-primary"/>
+            <h:commandLink value="Login" action="login?faces-redirect=true"
+                           immediate="true"
+                           styleClass="btn btn-primary"/>
 
-            <h:dataTable value="#{firstChainController.blockchain}" var="row"
+            <h:dataTable value="#{firstChainController.blockData}" var="row"
                          styleClass="table table-striped">
                 <h:column>
                     <f:facet name="header">Hash</f:facet>

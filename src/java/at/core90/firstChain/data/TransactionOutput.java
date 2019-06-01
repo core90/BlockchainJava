@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 /**
  *
@@ -24,10 +26,22 @@ public class TransactionOutput implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long idAuto;
 
-    private String id;
+    private String idHashed;
     private String recipient; // also known as the new owner of these coins
     private double value; // the amount of coins they own
-    private String parentTransactionId; // the id of the transaction this output was created in
+    private String parentTransactionId; // the idHashed of the transaction this output was created in
+
+    @ManyToOne
+    @JoinColumn
+    private Firstchain utxoTotal;
+
+    @ManyToOne
+    @JoinColumn
+    private Transaction transactionOutput;
+
+    @ManyToOne
+    @JoinColumn
+    private Wallet transactionOutputsWallet;
 
     public TransactionOutput() {
     }
@@ -37,7 +51,7 @@ public class TransactionOutput implements Serializable {
         this.recipient = recipient;
         this.value = value;
         this.parentTransactionId = parentTransactionId;
-        this.id = StringUtil.applySha256(recipient + Double.toString(value) + parentTransactionId);
+        this.idHashed = StringUtil.applySha256(recipient + Double.toString(value) + parentTransactionId);
     }
 
     // Check if coin belongs to you
@@ -50,23 +64,21 @@ public class TransactionOutput implements Serializable {
         return (publicKey.equals(recipient));
     }
 
-
-
     @Override
     public int hashCode() {
         int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
+        hash += (idHashed != null ? idHashed.hashCode() : 0);
         return hash;
     }
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
+        // TODO: Warning - this method won't work in the case the idHashed fields are not set
         if (!(object instanceof TransactionOutput)) {
             return false;
         }
         TransactionOutput other = (TransactionOutput) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+        if ((this.idHashed == null && other.idHashed != null) || (this.idHashed != null && !this.idHashed.equals(other.idHashed))) {
             return false;
         }
         return true;
@@ -74,7 +86,7 @@ public class TransactionOutput implements Serializable {
 
     @Override
     public String toString() {
-        return "at.core90.firstChain.persistence.TransactionOutput[ id=" + id + " ]";
+        return "TransactionOutput{" + "idAuto=" + idAuto + ", id=" + idHashed + ", recipient=" + recipient + ", value=" + value + ", parentTransactionId=" + parentTransactionId + ", transactionOutputTotal=" + utxoTotal + ", transactionOutput=" + transactionOutput + ", transactionOutputsWallet=" + transactionOutputsWallet + '}';
     }
 
     public Long getIdAuto() {
@@ -85,12 +97,12 @@ public class TransactionOutput implements Serializable {
         this.idAuto = idAuto;
     }
 
-    public String getId() {
-        return id;
+    public String getIdHashed() {
+        return idHashed;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setIdHashed(String idHashed) {
+        this.idHashed = idHashed;
     }
 
     public String getRecipient() {

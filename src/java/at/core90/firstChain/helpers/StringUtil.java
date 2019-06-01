@@ -15,6 +15,7 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 /**
  *
@@ -115,7 +116,7 @@ public class StringUtil {
      * @param transactions
      * @return String merkle root
      */
-    public static String getMerkleRoot(ArrayList<Transaction> transactions) {
+    public static String getMerkleRoot(List<Transaction> transactions) {
         int count = transactions.size();
         ArrayList<String> previousTreeLayer = new ArrayList<String>();
         for (Transaction transaction : transactions) {

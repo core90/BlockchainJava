@@ -16,14 +16,18 @@ import java.security.Security;
 import java.security.spec.ECGenParameterSpec;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 /**
  *
@@ -38,7 +42,10 @@ public class Wallet implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(length = 2048)
     private PrivateKey privateKey;
+    
+    @Column(length = 2048)
     private PublicKey publicKey;
 
     @Column(length = 2048)
@@ -49,11 +56,15 @@ public class Wallet implements Serializable {
 
     private String password;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    private HashMap<String, TransactionOutput> UTXOWallet = new HashMap<String, TransactionOutput>();
+    @OneToMany(mappedBy = "transactionOutputsWallet", cascade = CascadeType.ALL, fetch = FetchType.EAGER) // OneToMany OK?????????????
+    //@MapKey(name = "idHashed") // richtiger mapping key????????????????
+    private Map<String, TransactionOutput> UTXOWallet = new HashMap<String, TransactionOutput>();
 
-    private static ArrayList<Wallet> walletList = new ArrayList<Wallet>();
+    //private static List<Wallet> walletList = new ArrayList<Wallet>();
 
+    @Transient
+    Firstchain firstchain = new Firstchain();
+    
     public Wallet() {
         this.password = password;
         generateKeyPair();
@@ -97,10 +108,10 @@ public class Wallet implements Serializable {
      */
     public double getBalance() {
         double total = 0;
-        for (Map.Entry<String, TransactionOutput> item : Firstchain.getUTXOTotal().entrySet()) {
+        for (Map.Entry<String, TransactionOutput> item : firstchain.getUTXOTotal().entrySet()) {
             TransactionOutput UTXO = item.getValue();
             if (UTXO.isMine(publicKeyString)) { // if output belongs to this wallet (if coins belong to this wallet)
-                UTXOWallet.put(UTXO.getId(), UTXO); // add it to our list of unspent transactions
+                UTXOWallet.put(UTXO.getIdHashed(), UTXO); // add it to our list of unspent transactions
                 total += UTXO.getValue(); // add owned coins to the wallet
             }
         }
@@ -136,7 +147,7 @@ public class Wallet implements Serializable {
             total += UTXO.getValue();
 
             // store the id`s of the outputs in inputs array
-            inputs.add(new TransactionInput(UTXO.getId()));
+            inputs.add(new TransactionInput(UTXO.getIdHashed()));
             if (total > value) {
                 break;
             }
@@ -149,7 +160,7 @@ public class Wallet implements Serializable {
 
         // iterate over input array and remove spent outputs
         for (TransactionInput input : inputs) {
-            UTXOWallet.remove(input.transactionOutputId);
+            UTXOWallet.remove(input.getTransactionOutputId());
         }
         return newTransaction;
     }
@@ -199,7 +210,7 @@ public class Wallet implements Serializable {
         this.password = password;
     }
 
-    public HashMap<String, TransactionOutput> getUTXOWallet() {
+    public Map<String, TransactionOutput> getUTXOWallet() {
         return UTXOWallet;
     }
 
@@ -235,11 +246,11 @@ public class Wallet implements Serializable {
         return true;
     }
 
-    public static ArrayList<Wallet> getWalletList() {
-        return walletList;
-    }
-
-    public static void setWalletList(ArrayList<Wallet> aWalletList) {
-        walletList = aWalletList;
-    }
+//    public static List<Wallet> getWalletList() {
+//        return walletList;
+//    }
+//
+//    public static void setWalletList(ArrayList<Wallet> aWalletList) {
+//        walletList = aWalletList;
+//    }
 }

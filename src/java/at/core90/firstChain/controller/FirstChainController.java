@@ -10,18 +10,15 @@ import at.core90.firstChain.data.Firstchain;
 import at.core90.firstChain.data.Transaction;
 import at.core90.firstChain.data.TransactionOutput;
 import at.core90.firstChain.data.Wallet;
-import java.io.Serializable;
+import at.core90.persistence.DatabaseManager;
+import static at.core90.persistence.DatabaseManager.saveWallet;
 import java.security.Security;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Named;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceContext;
 
 /**
  *
@@ -33,14 +30,11 @@ public class FirstChainController implements AutoCloseable {
 
     static final Logger LOG = Logger.getLogger(FirstChainController.class.getName());
 
-//    private EntityManagerFactory emf;
-//    private EntityManager em;
-
     private String inputPublicKeyRecipient;
     double inputValue;
 
+    Wallet coinbaseWallet;
     Wallet walletA;
-    Wallet walletB;
 
     @Inject
     private WalletConroller walletController;
@@ -51,31 +45,23 @@ public class FirstChainController implements AutoCloseable {
     @PostConstruct
     public void init() {
 
-//        emf = Persistence.createEntityManagerFactory("FirstChainWebPU");
-//        em = emf.createEntityManager();
-//
-//        LOG.info("Init DB done.");
-        
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider()); //Setup Bouncy castle as a Security Provider
 
-        Firstchain.setDifficulty(3);
+        Firstchain.setDifficulty(4);
 
+//         set Genesis Transaction and Wallets for testing
+//         create genesis Block
         walletA = new Wallet();
-        walletB = new Wallet();
-        Wallet coinbase = new Wallet();
+        coinbaseWallet = new Wallet();
+        walletA.setPassword("6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b");
+        coinbaseWallet.setPassword("6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b");
+        saveWallet(walletA);
+        saveWallet(coinbaseWallet);
 
-        Wallet.getWalletList()
-                .add(walletA);
-        Wallet.getWalletList()
-                .add(walletB);
-        Wallet.getWalletList()
-                .add(coinbase);
+        Firstchain.setGenesisTransaction(new Transaction(coinbaseWallet.getPublicKey(), coinbaseWallet.getPublicKeyString(), walletA.getPublicKeyString(), 100.0, null));
 
-        // create genesis transaction, which sends 100 FirstCoins to walletA
-        Firstchain.setGenesisTransaction(
-                new Transaction(coinbase.getPublicKey(), coinbase.getPublicKeyString(), walletA.getPublicKeyString(), 100.0, null));
         Firstchain.getGenesisTransaction()
-                .generateSignature(coinbase.getPrivateKey()); // manually sign the genesis transaction
+                .generateSignature(coinbaseWallet.getPrivateKey()); // manually sign the genesis transaction
         Firstchain.getGenesisTransaction().setTransactionId("0"); // manually set the transaction id
 
         Firstchain.getGenesisTransaction().outputs.add(
@@ -85,7 +71,7 @@ public class FirstChainController implements AutoCloseable {
                         Firstchain.getGenesisTransaction().getTransactionId())); // manually add the Transaction Output
 
         Firstchain.getUTXOTotal()
-                .put(Firstchain.getGenesisTransaction().outputs.get(0).getId(),
+                .put(Firstchain.getGenesisTransaction().outputs.get(0).getIdHashed(),
                         Firstchain.getGenesisTransaction().outputs.get(0)); // its important to store our first transaction in the UTXOTotal list
 
         System.out.println(
@@ -94,10 +80,12 @@ public class FirstChainController implements AutoCloseable {
 
         genesis.addTransaction(Firstchain.getGenesisTransaction());
         Firstchain.addBlock(genesis);
-    }
-    //testing
 
-    public void testing() {
+        DatabaseManager.persist(genesis);
+    }
+
+    public void testing() throws Exception {
+
         Block previousBlock;
         Block newBlock;
 
@@ -105,32 +93,50 @@ public class FirstChainController implements AutoCloseable {
             System.out.println("trying");
             previousBlock = Firstchain.getBlockchain().get(i);
             newBlock = new Block(previousBlock.getHash());
-            newBlock.addTransaction(walletA.sendFunds(walletB.getPublicKeyString(), 0.5));
-            newBlock.addTransaction(walletB.sendFunds(walletA.getPublicKeyString(), 0.3));
+            newBlock.addTransaction(DatabaseManager.walletData().get(0).sendFunds(DatabaseManager.walletData().get(1).getPublicKeyString(), 10));
+//            newBlock.addTransaction(walletB.sendFunds(walletA.getPublicKeyString(), 0.3));
             Firstchain.addBlock(newBlock);
             Firstchain.isChainValid();
+
+            DatabaseManager.persist(newBlock);
+
         }
         System.out.println(Firstchain.getBlockchain().toString());
 
     }
 
-    public void newTransaction() {
+    public String newTransaction() {
         Block previousBlock;
         Block newBlock;
 
         previousBlock = Firstchain.getBlockchain().get(Firstchain.getBlockchain().size() - 1);
         newBlock = new Block(previousBlock.getHash());
 
-        newBlock.addTransaction(walletController.getLoggedInWallet().sendFunds(inputPublicKeyRecipient, inputValue));
+        if (inputValue < Firstchain.getMinimumTransaction()) {
+            return "newTransaction?faces-redirect=true";
+        }
+        if (!newBlock.addTransaction(walletController.getLoggedInWallet().
+                sendFunds(inputPublicKeyRecipient, inputValue))) {
+            return "newTransaction?faces-redirect=true";
+        }
+
         Firstchain.addBlock(newBlock);
         Firstchain.isChainValid();
+
+        DatabaseManager.persist(newBlock);
+        return "index?faces-redirect=true";
+    }
+
+    public List<Block> getBlockData() {
+        List<Block> blocks = DatabaseManager.BlockData();
+        return blocks;
     }
 
     public boolean isChainVaild() {
         return Firstchain.isChainValid();
     }
 
-    public ArrayList<Block> getBlockchain() {
+    public List<Block> getBlockchain() {
         return Firstchain.getBlockchain();
     }
 

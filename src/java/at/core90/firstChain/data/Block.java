@@ -5,18 +5,21 @@
  */
 package at.core90.firstChain.data;
 
-import at.core90.firstChain.data.Transaction;
 import at.core90.firstChain.helpers.StringUtil;
+import at.core90.persistence.DatabaseManager;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
 
 /**
  *
@@ -27,7 +30,7 @@ public class Block implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String hash;
@@ -37,8 +40,13 @@ public class Block implements Serializable {
     private Date date;
     private int nonce;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    private ArrayList<Transaction> transactions = new ArrayList<>(); // our data will be a simple message
+    @OneToMany(mappedBy = "transactionInBlock",
+            cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Transaction> transactions = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn
+    private Firstchain firstchain;
 
     public Block() {
     }
@@ -99,6 +107,7 @@ public class Block implements Serializable {
             }
         }
         transactions.add(transaction);
+        //DatabaseManager.persist(transaction);
         System.out.println("Transaction succesfully added to Block");
         return true;
     }
@@ -184,12 +193,20 @@ public class Block implements Serializable {
         this.nonce = nonce;
     }
 
-    public ArrayList<Transaction> getTransactions() {
+    public List<Transaction> getTransactions() {
         return transactions;
     }
 
     public void setTransactions(ArrayList<Transaction> transactions) {
         this.transactions = transactions;
+    }
+
+    public Firstchain getFirstchain() {
+        return firstchain;
+    }
+
+    public void setFirstchain(Firstchain firstchain) {
+        this.firstchain = firstchain;
     }
 
 }

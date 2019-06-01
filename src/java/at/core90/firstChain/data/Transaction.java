@@ -10,11 +10,16 @@ import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 /**
@@ -25,6 +30,7 @@ import javax.persistence.OneToMany;
 public class Transaction implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -34,8 +40,9 @@ public class Transaction implements Serializable {
      */
     private String transactionId;
 
+    @Column(length = 2048)
     private PublicKey pubKeySender;
-    
+
     /**
      * senders address/public key
      */
@@ -56,16 +63,20 @@ public class Transaction implements Serializable {
      */
     private byte[] signature;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    private ArrayList<TransactionInput> inputs = new ArrayList<>();
+    @OneToMany(mappedBy = "transactionInput", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<TransactionInput> inputs = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.EAGER)
-    public ArrayList<TransactionOutput> outputs = new ArrayList<>();
+    @OneToMany(mappedBy = "transactionOutput", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    public List<TransactionOutput> outputs = new ArrayList<>();
 
     /**
      * a rough count of how many transaction have been generated
      */
     private static int sequence = 0;
+
+    @ManyToOne
+    @JoinColumn
+    private Block transactionInBlock;
 
     public Transaction() {
     }
@@ -151,7 +162,7 @@ public class Transaction implements Serializable {
 
         // gather transaction inputs (Make sure they are unspent)
         for (TransactionInput i : inputs) {
-            i.UTXO = Firstchain.getUTXOTotal().get(i.transactionOutputId);
+            i.setUTXO(Firstchain.getUTXOTotal().get(i.getTransactionOutputId()));
         }
 
         // check if transaction is valid
@@ -168,15 +179,15 @@ public class Transaction implements Serializable {
 
         // add outputs to Unspent list
         for (TransactionOutput o : outputs) {
-            Firstchain.getUTXOTotal().put(o.getId(), o);
+            Firstchain.getUTXOTotal().put(o.getIdHashed(), o);
         }
 
         // remove transaction inputs from UTXO lists as spent
         for (TransactionInput i : inputs) {
-            if (i.UTXO == null) {
+            if (i.getUTXO() == null) {
                 continue; // if Transaction can't be found skip it 
             }
-            Firstchain.getUTXOTotal().remove(i.UTXO.getId());
+            Firstchain.getUTXOTotal().remove(i.getUTXO().getIdHashed());
         }
         return true;
     }
@@ -188,10 +199,10 @@ public class Transaction implements Serializable {
     public double getInputsValue() {
         double total = 0;
         for (TransactionInput i : inputs) {
-            if (i.UTXO == null) {
+            if (i.getUTXO() == null) {
                 continue; //if Transaction can't be found skip it 
             }
-            total += i.UTXO.getValue();
+            total += i.getUTXO().getValue();
         }
         return total;
     }
@@ -281,7 +292,7 @@ public class Transaction implements Serializable {
         this.signature = signature;
     }
 
-    public ArrayList<TransactionInput> getInputs() {
+    public List<TransactionInput> getInputs() {
         return inputs;
     }
 
@@ -289,7 +300,7 @@ public class Transaction implements Serializable {
         this.inputs = inputs;
     }
 
-    public ArrayList<TransactionOutput> getOutputs() {
+    public List<TransactionOutput> getOutputs() {
         return outputs;
     }
 

@@ -30,14 +30,11 @@
             <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"
                            immediate="true"
                            styleClass="btn btn-primary"/>
-            <h:commandLink value="Login" action="login?faces-redirect=true"
-                           immediate="true"
-                           styleClass="btn btn-primary"/>
 
-            <h:dataTable value="#{walletConroller.walletList}" var="row">
+            <h:dataTable value="#{walletConroller.walletData}" var="row">
                 <h:column>
                     <f:facet name="header">Public Key</f:facet>
-                        #{row.publicKey}
+                        #{row.publicKeyString}
                 </h:column>
                 <h:column>
                     <f:facet name="header">Balance</f:facet>

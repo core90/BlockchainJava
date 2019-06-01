@@ -29,9 +29,11 @@
                                required="true"
                                requiredMessage="Please enter Password"/>
             </div>
-            <h:commandButton value="Login..."
-                             action="#{walletConroller.doLogin()}"/>
+            <h:commandLink value="Login..."
+                           action="#{walletConroller.doLogin()}"
+                           styleClass="btn btn-primary"/>
             <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"
+                           styleClass="btn btn-primary"
                            immediate="true"/>
         </h:form>
     </ui:define>

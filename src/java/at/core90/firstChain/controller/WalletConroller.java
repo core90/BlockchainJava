@@ -7,13 +7,12 @@ package at.core90.firstChain.controller;
 
 import at.core90.firstChain.data.Wallet;
 import at.core90.firstChain.helpers.CryptException;
-import at.core90.firstChain.helpers.JSFUtil;
 import at.core90.firstChain.helpers.StringUtil;
+import at.core90.persistence.DatabaseManager;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Objects;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,34 +47,42 @@ public class WalletConroller implements Serializable {
         } catch (CryptException ex) {
             Logger.getLogger(WalletConroller.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Wallet.getWalletList().add(newWallet);
+
         loggedInWallet = newWallet;
+        
+        DatabaseManager.saveWallet(newWallet);
+
         return "walletUser?redirect-true";
     }
 
     public String doLogin() {
-        Wallet tmpWallet = null;
 
-        for (Wallet wallet : Wallet.getWalletList()) {
+        String inputPasswordHashed = null;
 
-            try {
-                if (StringUtil.getStringFromKey(wallet.getPublicKey()).equals(inputPublicKey)
-                        && wallet.getPassword().equals(StringUtil.getSha256(inputPassword))) {
-                    tmpWallet = wallet;
-                    break;
-                }
-            } catch (CryptException ce) {
-                LOG.warning("Cannot calculate SHA256" + ce.getMessage());
-            }
+        try {
+            inputPasswordHashed = StringUtil.getSha256(inputPassword);
+        } catch (CryptException ex) {
+            Logger.getLogger(WalletConroller.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        if (Objects.nonNull(tmpWallet)) {
-            loggedInWallet = tmpWallet;
+        loggedInWallet = DatabaseManager.queryWalletUser(inputPublicKey, inputPasswordHashed);
+
+        if (loggedInWallet == null) {
+            return "index?faces-redirect=true";
+        } else {
             return "walletUser?faces-redirect=true";
         }
 
-        JSFUtil.displayWarning("Invalid Public Key or Password!");
-        return null;
+//        if (DatabaseManager.queryWalletUser(inputPublicKey, inputPasswordHashed)) {
+//            return "walletUser?faces-redirect=true";
+//        } else {
+//            return "index?faces-redirect=true";
+//        }
+    }
+
+    public List<Wallet> getWalletData() {
+        List<Wallet> wallets = DatabaseManager.walletData();
+        return wallets;
     }
 
     @Override
@@ -83,10 +90,9 @@ public class WalletConroller implements Serializable {
         return "WalletConroller{" + "loggedInWallet=" + loggedInWallet + ", inputPublicKey=" + inputPublicKey + ", inputPassword=" + inputPassword + '}';
     }
 
-    public ArrayList<Wallet> getWalletList() {
-        return Wallet.getWalletList();
-    }
-
+//    public List<Wallet> getWalletList() {
+//        return Wallet.getWalletList();
+//    }
     public Wallet getLoggedInWallet() {
         return loggedInWallet;
     }
