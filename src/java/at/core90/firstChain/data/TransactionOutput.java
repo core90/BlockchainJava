@@ -7,12 +7,17 @@ package at.core90.firstChain.data;
 
 import at.core90.firstChain.helpers.StringUtil;
 import java.io.Serializable;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 /**
  *
@@ -32,16 +37,20 @@ public class TransactionOutput implements Serializable {
     private String parentTransactionId; // the idHashed of the transaction this output was created in
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "firstchain_id")
     private Firstchain utxoTotal;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "transaction_id")
     private Transaction transactionOutput;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "wallet_id")
     private Wallet transactionOutputsWallet;
+
+    @OneToOne(mappedBy = "UTXO", cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER)
+    private TransactionInput transactionInput;
 
     public TransactionOutput() {
     }

@@ -120,7 +120,7 @@ public class StringUtil {
         int count = transactions.size();
         ArrayList<String> previousTreeLayer = new ArrayList<String>();
         for (Transaction transaction : transactions) {
-            previousTreeLayer.add(transaction.getTransactionId());
+            previousTreeLayer.add(transaction.getTransactionHash());
         }
 
         ArrayList<String> treeLayer = previousTreeLayer;

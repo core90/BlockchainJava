@@ -38,7 +38,7 @@ public class Transaction implements Serializable {
     /**
      * this is also the hash of the transaction
      */
-    private String transactionId;
+    private String transactionHash;
 
     @Column(length = 2048)
     private PublicKey pubKeySender;
@@ -63,10 +63,14 @@ public class Transaction implements Serializable {
      */
     private byte[] signature;
 
-    @OneToMany(mappedBy = "transactionInput", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "transactionInput",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER)
     private List<TransactionInput> inputs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "transactionOutput", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "transactionOutput",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER)
     public List<TransactionOutput> outputs = new ArrayList<>();
 
     /**
@@ -75,7 +79,7 @@ public class Transaction implements Serializable {
     private static int sequence = 0;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "block_id")
     private Block transactionInBlock;
 
     public Transaction() {
@@ -155,12 +159,14 @@ public class Transaction implements Serializable {
      * @return true if new transaction could be created
      */
     public boolean processTransaction() {
+
         if (verifySignature() == false) {
             System.out.println("Transaction Signature failed to verify");
             return false;
         }
 
         // gather transaction inputs (Make sure they are unspent)
+        //List<TransactionInput> inputs = DatabaseManager.transactionInputData();
         for (TransactionInput i : inputs) {
             i.setUTXO(Firstchain.getUTXOTotal().get(i.getTransactionOutputId()));
         }
@@ -168,14 +174,15 @@ public class Transaction implements Serializable {
         // check if transaction is valid
         if (getInputsValue() < Firstchain.getMinimumTransaction()) {
             System.out.println("Transaction Inputs to small: " + getInputsValue());
+            System.out.println("Please enter amount greater than: " + Firstchain.getMinimumTransaction());
             return false;
         }
 
         // generate transaction outputs:
         double leftOver = getInputsValue() - value; // get the value of inputs then the left over change
-        transactionId = calculateHash();
-        outputs.add(new TransactionOutput(this.recipient, value, transactionId)); // send value to recipient
-        outputs.add(new TransactionOutput(this.sender, leftOver, transactionId)); // send the left over 'change' back to sender
+        transactionHash = calculateHash();
+        outputs.add(new TransactionOutput(this.recipient, value, transactionHash)); // send value to recipient
+        outputs.add(new TransactionOutput(this.sender, leftOver, transactionHash)); // send the left over 'change' back to sender
 
         // add outputs to Unspent list
         for (TransactionOutput o : outputs) {
@@ -198,6 +205,7 @@ public class Transaction implements Serializable {
      */
     public double getInputsValue() {
         double total = 0;
+        //inputs = DatabaseManager.transactionInputData();
         for (TransactionInput i : inputs) {
             if (i.getUTXO() == null) {
                 continue; //if Transaction can't be found skip it 
@@ -213,6 +221,7 @@ public class Transaction implements Serializable {
      */
     public double getOutputValue() {
         double total = 0;
+        //outputs = DatabaseManager.transactionOutputData();
         for (TransactionOutput o : outputs) {
             total += o.getValue();
         }
@@ -249,15 +258,15 @@ public class Transaction implements Serializable {
 
     @Override
     public String toString() {
-        return "Transaction{" + "id=" + id + ", transactionId=" + transactionId + ", sender=" + sender + ", recipient=" + recipient + ", value=" + value + ", signature=" + signature + ", inputs=" + inputs + ", outputs=" + outputs + '}';
+        return "" + "Transaction Hash: " + transactionHash + ", " + "Sender: " + sender + ", " + "Recipient: " + recipient + ", Value: " + value + ", Signature: " + signature;
     }
 
-    public String getTransactionId() {
-        return transactionId;
+    public String getTransactionHash() {
+        return transactionHash;
     }
 
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
+    public void setTransactionHash(String transactionHash) {
+        this.transactionHash = transactionHash;
     }
 
     public String getSender() {
@@ -322,6 +331,14 @@ public class Transaction implements Serializable {
 
     public void setPubKeySender(PublicKey pubKeySender) {
         this.pubKeySender = pubKeySender;
+    }
+
+    public Block getTransactionInBlock() {
+        return transactionInBlock;
+    }
+
+    public void setTransactionInBlock(Block transactionInBlock) {
+        this.transactionInBlock = transactionInBlock;
     }
 
 }

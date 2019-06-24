@@ -17,5 +17,5 @@ public class JSFUtil {
     FacesContext.getCurrentInstance().addMessage(null,
             new FacesMessage(type, msg, msg));
   }
-
+  
 }

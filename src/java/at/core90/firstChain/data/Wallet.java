@@ -16,7 +16,6 @@ import java.security.Security;
 import java.security.spec.ECGenParameterSpec;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -25,9 +24,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 /**
  *
@@ -44,7 +41,7 @@ public class Wallet implements Serializable {
 
     @Column(length = 2048)
     private PrivateKey privateKey;
-    
+
     @Column(length = 2048)
     private PublicKey publicKey;
 
@@ -54,18 +51,21 @@ public class Wallet implements Serializable {
     @Column(length = 2048)
     private String publicKeyString;
 
+    private String username;
+
     private String password;
 
-    @OneToMany(mappedBy = "transactionOutputsWallet", cascade = CascadeType.ALL, fetch = FetchType.EAGER) // OneToMany OK?????????????
+    @OneToMany(mappedBy = "transactionOutputsWallet",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER)
     //@MapKey(name = "idHashed") // richtiger mapping key????????????????
     private Map<String, TransactionOutput> UTXOWallet = new HashMap<String, TransactionOutput>();
 
     //private static List<Wallet> walletList = new ArrayList<Wallet>();
-
-    @Transient
     Firstchain firstchain = new Firstchain();
-    
+
     public Wallet() {
+        this.username = username;
         this.password = password;
         generateKeyPair();
     }
@@ -253,4 +253,11 @@ public class Wallet implements Serializable {
 //    public static void setWalletList(ArrayList<Wallet> aWalletList) {
 //        walletList = aWalletList;
 //    }
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }

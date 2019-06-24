@@ -30,7 +30,7 @@ public class Block implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String hash;
@@ -41,11 +41,11 @@ public class Block implements Serializable {
     private int nonce;
 
     @OneToMany(mappedBy = "transactionInBlock",
-            cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+            cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Transaction> transactions = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "firstchain_id")
     private Firstchain firstchain;
 
     public Block() {
@@ -107,6 +107,8 @@ public class Block implements Serializable {
             }
         }
         transactions.add(transaction);
+//        transaction.setTransactionInBlock(this);
+        //DatabaseManager.persist(this);
         //DatabaseManager.persist(transaction);
         System.out.println("Transaction succesfully added to Block");
         return true;

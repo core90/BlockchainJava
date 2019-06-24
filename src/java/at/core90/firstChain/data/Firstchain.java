@@ -5,7 +5,6 @@
  */
 package at.core90.firstChain.data;
 
-import at.core90.persistence.DatabaseManager;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +18,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 /**
  *
@@ -29,17 +29,21 @@ public class Firstchain implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @OneToMany(mappedBy = "firstchain", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "firstchain",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER)
     private static List<Block> blockchain = new ArrayList<Block>();
 
     /**
      * List of all unspent transactions
      */
-    @OneToMany(mappedBy = "utxoTotal", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    //@MapKey(name = "idHashed")
+    @OneToOne(mappedBy = "utxoTotal",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER)
+    @MapKey(name = "idHashed")
     private static Map<String, TransactionOutput> UTXOTotal = new HashMap<String, TransactionOutput>();
 
     /**
@@ -153,11 +157,14 @@ public class Firstchain implements Serializable {
      * @param newBlock
      */
     public static void addBlock(Block newBlock) {
+//        Firstchain firstchain = new Firstchain();
         newBlock.mineBlock(difficulty);
         blockchain.add(newBlock);
+//        newBlock.setFirstchain(firstchain);
+        //DatabaseManager.persist(firstchain);
         //DatabaseManager.persist(newBlock);
     }
-  
+
     public Long getId() {
         return id;
     }

@@ -1,41 +1,62 @@
 <?xml version='1.0' encoding='UTF-8' ?>
 <!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
                 template="./WEB-INF/layouts/firstChainTemplate.xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html">
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:a="http://xmlns.jcp.org/jsf/passthrough">
 
     <ui:define name="title">
         New Transaction
     </ui:define>
 
     <ui:define name="top">
-        top
+
     </ui:define>
 
     <ui:define name="content">
-        <h:form prependId="false">
-            <h:messages/>
+        <h:panelGroup rendered="#{walletConroller.loggedInWallet == null}"> 
+            Not logged in!
+            <h:link outcome="login" value="Login..."/>
+        </h:panelGroup>
+        <h:panelGroup rendered="#{walletConroller.loggedInWallet != null}">
+            <h:form id="newTransactionForm">
+                <div class="form-group row">
+                    <h:outputLabel class="col-2" for="inputPublicKeyRecipient">Send to Address</h:outputLabel>
+                    <h:inputText class="form-control col-10"
+                                 a:autofocus="true"
+                                 onfocus="this.value=''"
+                                 id="inputPublicKeyRecipient"
+                                 value="#{firstChainController.inputPublicKeyRecipient}"
+                                 required="true"
+                                 requiredMessage="Please enter Public Key of Recipient"/>
+                    <h:message for="inputPublicKeyRecipient" style="color: red"/>
+                </div>
+                <div class="form-group row">
+                    <h:outputLabel class="col-2" for="inputValue ">Value</h:outputLabel>
+                    <h:inputText class="form-control col-2" 
+                                 id="inputValue"
+                                 value="#{firstChainController.inputValue}"
+                                 required="true"
+                                 requiredMessage="Please enter Value to send"/>
+                    <h:message for="sendButton" style="color: red"/>
+                    <h:message for="inputValue" style="color: red"/>
+                </div>
+
+                <h:commandLink id="sendButton"
+                               value="Send"
+                               action="#{firstChainController.newTransaction()}"
+                               styleClass="btn btn-success"/>
+                <h:commandLink value="Cancel" action="walletUser?faces-redirect=true"
+                               immediate="true"
+                               styleClass="btn btn-danger"/>
+            </h:form>
             <div>
-                <h:outputLabel for="inputPublicKeyRecipient">Recipient</h:outputLabel>
-                <h:inputText id="inputPublicKeyRecipient"
-                             value="#{firstChainController.inputPublicKeyRecipient}"
-                             required="true"
-                             requiredMessage="Please enter Public Key of Recipient"/>
+                <h:outputText value="Balance:"/>
+                #{walletConroller.loggedInWallet.balance} Firstcoins
             </div>
-            <div>
-                <h:outputLabel for="inputValue ">Value</h:outputLabel>
-                <h:inputText id="inputValue"
-                             value="#{firstChainController.inputValue}"
-                             required="true"
-                             requiredMessage="Please enter Value to send"/>
-            </div>
-            <h:commandLink value="Send"
-                           action="#{firstChainController.newTransaction()}"
-                           styleClass="btn btn-primary"/>
-            <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"
-                           immediate="true"
-                           styleClass="btn btn-primary"/>
-        </h:form>
+            <h:outputLabel style="color: red" value="#{flash['param1']}" />
+        </h:panelGroup>
     </ui:define>
 
 </ui:composition>

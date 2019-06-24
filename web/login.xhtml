@@ -1,39 +1,50 @@
 <?xml version='1.0' encoding='UTF-8' ?>
 <!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns="http://www.w3.org/1999/xhtml"
                 template="./WEB-INF/layouts/firstChainTemplate.xhtml"
-                xmlns:h="http://xmlns.jcp.org/jsf/html">
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:a="http://xmlns.jcp.org/jsf/passthrough">
 
     <ui:define name="title">
         Login
     </ui:define>
 
     <ui:define name="top">
-        top
+
     </ui:define>
 
     <ui:define name="content">
-        <h:form prependId="false">
-            <h:messages/>
-            <div>
-                <h:outputLabel for="inputPublicKey">Public Key</h:outputLabel>
-                <h:inputText id="inputPublicKey"
-                             value="#{walletConroller.inputPublicKey}"
+
+        <h:form id="loginForm">
+            <div class="form-group row">
+                <h:outputLabel class="col-2" for="inputUsername">Username:</h:outputLabel>
+                <h:inputText class="form-control col-3" 
+                             a:autofocus="true"
+                             onfocus="this.value=''"
+                             id="inputUsername"
+                             value="#{walletConroller.inputUsername}"
                              required="true"
-                             requiredMessage="Please enter Public Key"/>
+                             requiredMessage="Please enter Username"/>
+                <h:message for="inputUsername" style="color: red"/>
+                <h:message for="loginButton" style="color: red"/>
             </div>
-            <div>
-                <h:outputLabel for="inputPassword">Password</h:outputLabel>
-                <h:inputSecret id="inputPassword"
+            <div class="form-group row">
+                <h:outputLabel class="col-2" for="inputPassword">Password</h:outputLabel>
+                <h:inputSecret class="form-control col-3" 
+                               id="inputPassword"
                                value="#{walletConroller.inputPassword}"
                                required="true"
                                requiredMessage="Please enter Password"/>
+                <h:message for="inputPassword" style="color: red"/>
+                <h:message for="loginButton" style="color: red"/>
             </div>
-            <h:commandLink value="Login..."
+            <h:commandLink id="loginButton"
+                           value="Login..."
                            action="#{walletConroller.doLogin()}"
-                           styleClass="btn btn-primary"/>
+                           styleClass="btn btn-success"/>
             <h:commandLink value="Back to Main Menu" action="index?faces-redirect=true"
-                           styleClass="btn btn-primary"
+                           styleClass="btn btn-danger"
                            immediate="true"/>
         </h:form>
     </ui:define>

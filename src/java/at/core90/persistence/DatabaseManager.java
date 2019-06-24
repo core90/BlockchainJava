@@ -6,11 +6,10 @@
 package at.core90.persistence;
 
 import at.core90.firstChain.data.Block;
-import at.core90.firstChain.data.Firstchain;
 import at.core90.firstChain.data.Transaction;
+import at.core90.firstChain.data.TransactionInput;
 import at.core90.firstChain.data.TransactionOutput;
 import at.core90.firstChain.data.Wallet;
-import static com.sun.faces.util.CollectionsUtils.map;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -18,7 +17,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
-import static jdk.nashorn.internal.objects.NativeArray.map;
 
 /**
  *
@@ -78,7 +76,7 @@ public class DatabaseManager implements AutoCloseable {
         }
     }
 
-    public static Wallet queryWalletUser(String inputPubKey, String inputPasswordHashed) {
+    public static Wallet queryWalletUser(String inputUsername, String inputPasswordHashed) {
 
         em = getEntityManager();
         Wallet loggedInWallet = null;
@@ -87,18 +85,55 @@ public class DatabaseManager implements AutoCloseable {
 
         try {
             TypedQuery<Wallet> query = em.createQuery("SELECT w FROM Wallet w "
-                    + "WHERE w.publicKeyString = :publicKeyString "
+                    + "WHERE w.username = :username "
                     + "AND w.password = :password", Wallet.class);
             loggedInWallet = query.setParameter(
-                    "publicKeyString", inputPubKey).setParameter("password", inputPasswordHashed)
+                    "username", inputUsername).setParameter("password", inputPasswordHashed)
                     .getSingleResult();
         } catch (Exception e) {
-                e.printStackTrace();
+            e.printStackTrace();
         }
         em.getTransaction().commit();
         em.close();
 
         return loggedInWallet;
+    }
+
+    public static String queryDoUserExist(String inputUsername) {
+        em = getEntityManager();
+        em.getTransaction().begin();
+
+        String existingUser = null;
+
+        try {
+            TypedQuery<String> query = em.createQuery(
+                    "SELECT w.username FROM Wallet w WHERE w.username = :username", String.class);
+            existingUser = query.setParameter("username", inputUsername).getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        em.getTransaction().commit();
+        em.close();
+
+        return existingUser;
+    }
+
+    public static String queryDoPublicKeyExist(String inputPublicKey) {
+        em = getEntityManager();
+        em.getTransaction().begin();
+
+        String existingPublicKey = null;
+
+        try {
+            TypedQuery<String> query = em.createQuery(
+                    "SELECT w.publicKeyString FROM Wallet w WHERE w.publicKeyString = :inputPublicKey", String.class);
+            existingPublicKey = query.setParameter("inputPublicKey", inputPublicKey).getSingleResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        em.getTransaction().commit();
+        em.close();
+        return existingPublicKey;
     }
 
     public static List<Wallet> walletData() {
@@ -112,7 +147,40 @@ public class DatabaseManager implements AutoCloseable {
         return wallets;
     }
 
-    public static List<Block> BlockData() {
+    public static List<Transaction> transactionData() {
+        em = getEntityManager();
+
+        em.getTransaction().begin();
+        List<Transaction> transactions = em.createQuery("SELECT t FROM Transaction t", Transaction.class).getResultList();
+        em.getTransaction().commit();
+        em.close();
+
+        return transactions;
+    }
+
+    public static List<TransactionOutput> transactionOutputData() {
+        em = getEntityManager();
+
+        em.getTransaction().begin();
+        List<TransactionOutput> transactionOutputs = em.createQuery("SELECT t FROM TransactionOutput t", TransactionOutput.class).getResultList();
+        em.getTransaction().commit();
+        em.close();
+
+        return transactionOutputs;
+    }
+
+    public static List<TransactionInput> transactionInputData() {
+        em = getEntityManager();
+
+        em.getTransaction().begin();
+        List<TransactionInput> transactionInputs = em.createQuery("SELECT ti FROM TransactionInput ti", TransactionInput.class).getResultList();
+        em.getTransaction().commit();
+        em.close();
+
+        return transactionInputs;
+    }
+
+    public static List<Block> blockData() {
         em = getEntityManager();
 
         em.getTransaction().begin();
@@ -138,6 +206,15 @@ public class DatabaseManager implements AutoCloseable {
         }
 
         em.close();
+    }
+
+    public static void refresh(Object object) {
+        em = getEntityManager();
+        em.getTransaction().begin();
+        em.refresh(object);
+        em.getTransaction().commit();
+        em.close();
+
     }
 
     @Override

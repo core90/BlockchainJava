@@ -5,15 +5,14 @@
  */
 package at.core90.firstChain.data;
 
-import at.core90.firstChain.data.TransactionOutput;
 import java.io.Serializable;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 /**
  *
@@ -28,12 +27,13 @@ public class TransactionInput implements Serializable {
     private Long id;
 
     private String transactionOutputId; // Reference to TransactionOutputs -> transactionId
-    
-    @Column(length = 2048)
+
+    @OneToOne
+    @JoinColumn(name = "transactionOutput_idAuto")
     private TransactionOutput UTXO; // Contains the unspent transaction output
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "transaction_id")
     private Transaction transactionInput;
 
     public TransactionInput() {
